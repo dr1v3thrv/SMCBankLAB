@@ -1,4 +1,4 @@
 Castellon Nassar
-Transaction History
+Balance
 Savings   |   Checking  |
 1000      | 1500        |
