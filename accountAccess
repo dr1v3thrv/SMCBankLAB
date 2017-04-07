@@ -1,0 +1,78 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#define NAME_LEN 30
+#define ACCT_FILE_LEN 14 //ninedigit account num plus 4 characters for ".txt"
+
+typedef struct {
+	char firstName[NAME_LEN+1];
+	char lastName[NAME_LEN+1];
+	int accountNum;
+	int pin;
+	char accountFile[ACCT_FILE_LEN + 1];
+} Account ;
+	
+Account parseStudent(const char* line) {
+	char delimiter[2] = ",";
+	Account account;
+	char* token = Strtok(line, delimiter);
+	int i = 0;
+	while (token != NULL) {
+		if(i==0) {
+			strcpy(account.firstName, token);
+		}
+		if(i==1) {
+			strcpy(account.lastName, token);
+		}
+		if(i==2) {
+			account.accountNum = atof(token);
+		}
+		if(i==3) {
+			account.pin =atof(token);
+		}
+		if (i == 4) {
+			strcpy(account.accountFile, token);
+		}
+
+		token = strtok(NULL, delimiter);
+		i++;
+
+	};
+	return account;
+
+}
+
+
+int main() {
+	//variables 
+	int accountNumInput;
+	int pinInput;
+
+	
+	printf("Please enter your account number");  //Ask user for login info
+	scanf("%d", accountNumInput);
+
+	FILE *fp = fopen("accounts.txt", "r");	//open file
+	
+	if (fp == NULL) 
+	{
+		printf("File is Empty");
+	}
+	else
+	{
+		//search for acct num 
+	}
+	//Verify for existing account 
+
+	//if exists verify PIN NUM 
+	//else account number not found
+
+
+
+
+	
+
+	fclose(fp);
+	return 0;
+}
