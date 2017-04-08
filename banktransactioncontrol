@@ -1,0 +1,36 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+int main()
+{
+    float balance;
+    float amount;
+    char transactionType;
+
+    printf("Enter the old balance: \t");
+    scanf("%f", &balance);
+
+    printf("Enter the transactions now. \n");
+    printf("Enter an F for the transaction type when you are finished. \n\n");
+
+    printf("Transaction Type (D= deposit, W= withdrawal, F= finished): ");
+    scanf(" %c", &transactionType);
+
+//While TransactionType does not equal to F, run this code
+    while (transactionType != 'F'){
+        printf("Amount: ");
+        scanf("%f", &amount);
+        //If transactionType = D, then add amount to balance
+            if(transactionType == 'D')
+                balance += amount;
+        //If transactionType = F, then subtract amount from balance
+            if(transactionType == 'W')
+                balance -= amount;
+
+    printf("Transaction Type (D= deposit, W= withdrawal, F= finished): ");
+    scanf(" %c", &transactionType);
+    }
+    printf("\nYour ending balance is $%.02f", balance);
+
+    return 0;
+}
