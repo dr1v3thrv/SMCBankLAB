@@ -2,36 +2,43 @@
 #include <string.h>
 #include <stdlib.h>
 
-#define NAME_LEN 30
+#define NAME_LEN 50
 #define ACCT_FILE_LEN 14 //ninedigit account num plus 4 characters for ".txt"
 
 typedef struct {
-	char firstName[NAME_LEN+1];
-	char lastName[NAME_LEN+1];
+	char firstName[NAME_LEN];
+	char lastName[NAME_LEN];
 	int accountNum;
 	int pin;
-	char accountFile[ACCT_FILE_LEN + 1];
+	char accountFile[ACCT_FILE_LEN];
 } Account ;
-	
-Account parseStudent(const char* line) {
-	char delimiter[2] = ",";
-	Account account;
-	char* token = Strtok(line, delimiter);
+
+Account parseAccount(char* line) //Function parseAccount takes char ptr as its arg and returns an Account struct 
+{
+	const char delimiter[2] = ",";
+	Account account; //variable account of the datatype Account 
+	char* token = strtok(line, delimiter);// declares token as the first token in the line
 	int i = 0;
-	while (token != NULL) {
-		if(i==0) {
+	while (token != NULL) 
+	{
+		if (i == 0) 
+		{
 			strcpy(account.firstName, token);
 		}
-		if(i==1) {
+		if (i == 1) 
+		{
 			strcpy(account.lastName, token);
 		}
-		if(i==2) {
-			account.accountNum = atof(token);
+		if (i == 2) 
+		{
+			account.accountNum = atoi(token);
 		}
-		if(i==3) {
-			account.pin =atof(token);
+		if (i == 3)
+		{
+			account.pin = atoi(token);
 		}
-		if (i == 4) {
+		if (i == 4) 
+		{
 			strcpy(account.accountFile, token);
 		}
 
@@ -39,40 +46,48 @@ Account parseStudent(const char* line) {
 		i++;
 
 	};
-	return account;
-
+	return account; //returns account struct 
 }
 
+void printAccount(Account account) {
+	printf("\n***Account**");
+	printf("\nFirst Name: %s", account.firstName);
+}
 
 int main() {
+	
+	
 	//variables 
 	int accountNumInput;
 	int pinInput;
+	char line[500];
+	Account accountArray[5];
 
-	
 	printf("Please enter your account number");  //Ask user for login info
-	scanf("%d", accountNumInput);
+	//scanf("%d", accountNumInput);
 
 	FILE *fp = fopen("accounts.txt", "r");	//open file
 	
 	if (fp == NULL) 
 	{
-		printf("File is Empty");
+		printf("Error. No such file found");
 	}
 	else
 	{
+		fgets(line, 500, fp);
+		//MAKE LOOP TO CHANGE i
+		accountArray[0] = parseAccount(line);
+		printAccount(accountArray[0]);
+		//parse info in file 
+		//account = readAccount(line);
 		//search for acct num 
+		fclose(fp);
 	}
 	//Verify for existing account 
 
 	//if exists verify PIN NUM 
 	//else account number not found
 
-
-
-
 	
-
-	fclose(fp);
 	return 0;
 }
