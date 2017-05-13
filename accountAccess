@@ -91,3 +91,17 @@ int main() {
 	
 	return 0;
 }
+ char getAccountFile(accountNum){
+	char accountFile;
+
+	FILE *fpAccounts = fopen("accounts.txt", "r");	//open file
+
+	while (fgets(line, 500, fpAccounts) != NULL)//get a line up to 500 chars from file. End when NULL
+		{
+			accountArray[0] = parseAccount(line);
+			 if (accountArray[0].accountNum == accountNum){
+			 	accountFile = accountArray[0].accountFile; 
+			 	return accountFile;
+			 }
+	fclose(fpAccounts);
+}
