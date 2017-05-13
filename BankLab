@@ -7,8 +7,15 @@
      #include <stdlib.h>
      #include <errno.h>
      #include <stddef.h>
-     #define CHUNK 1024 //Reads 1024 bytes of data at a time//
+     #include <string.h>
+     #include <stdbool.h>
+
      
+     //Define
+     #define CHUNK 1024 //Reads 1024 bytes of data at a time//
+     #define NAME_LEN 50
+	 #define ACCT_FILE_LEN 14 //ninedigit account num plus 4 characters for ".txt"
+	 
      void printheader(void);
      void printintromenu(void);
      void printoutromenu(void);
@@ -25,16 +32,47 @@
     	int SSum = 0;//Savings Sum
     	int Checking = 1000;//Checking balance - I was using this to test out another bit of code to see that the program was running correctly. I took it out due to crashing
     	int Savings;// Savings balance - was not working on that yet
-    	int Account;//Where the account number is saved
+    	int Accounts;//Where the account number is saved
     	int Password;//Password is saved
     	int Name;// I was going to use this to somehow open specific files depending on the input of the user. Need more research since I have failed so far.
     	int gotostart=0;//This one of the things im testing currently. I need to be able to get out of a loop and start back in the main menu when the user is done. Figure this might be a way
     	char buff[CHUNK];//Array where the program stores the information of the file. Chunk is mentioned above
-		int userChoice;
+		char userChoice;
 		size_t nread;
     	FILE *fptr;//This is our pointer to open file. Whenever you mention any file that need to be open just use fptr instead of file.
 
 
+typedef struct {
+
+	char firstName[NAME_LEN];
+
+	char lastName[NAME_LEN];
+
+	int accountNum;
+
+	int pin;
+
+	char accountFile[ACCT_FILE_LEN];
+
+} Account ;
+
+Account parseAccount(char* line);
+
+
+
+void printAccount(Account account) 
+
+{
+
+	printf("\n***Account**");
+
+	printf("\nFirst Name: %s", account.firstName);
+
+}
+
+
+
+char getAccountAccess(); //declared a function 
 
     int GetInteger(const char *prompt, int *i)//Sifts through inputs by user and ensures that it is an integer, otherwise it will return a invalid entry
 	{
@@ -65,7 +103,7 @@
 		
 		printintromenu();//prints ascii top menu 
 
-	        if (GetInteger("||                          Please enter your account number to begin.                           ||\n", &Account))//This is where the input is made for each of the arrays
+	    /*    if (GetInteger("||                          Please enter your account number to begin.                           ||\n", &Account))//This is where the input is made for each of the arrays
             {
                    ; // End of file or I/O error (rare)
             }
@@ -73,7 +111,8 @@
 		    if (GetInteger("||                          Please enter your password.                                          ||\n", &Password))
             {
             	;
-            }
+            }*/
+        getAccountAccess();
         
 		printoutromenu();//prints ascii bottom menu
         
@@ -83,21 +122,22 @@
 		return 0;
 	
     }
-    void casesystem(void)
+    
+	
+	void casesystem(void)
     {
+    	getchar();
     		        
 		   while(1)
            {
 			
-			printf("\nPlease enter '1' for Transaction History, '2' for Balance, '3' for Deposit, or '4' for Withdraw, '5' to print a receipt.\n");
+			printf("\nPlease enter 'T' for Transaction History, 'B' for Balance, 'D' for Deposit, or 'W' for Withdraw\n 'P' to print a receipt, or 'E' to exit.\n");
 
-			if ((Account == 10011) && (Password == 12345))
-			{
-			    scanf("%d", &userChoice);
+			    scanf("%c", &userChoice);
 			
 			switch (userChoice)
 			{
-				case(1):
+				case 't':
 					{
 					fptr = fopen ("10011TH.txt","r");//opens this file to read
                     
@@ -124,7 +164,35 @@
 								break;
                     }
 			        }
-			        case (2):
+			        
+					case 'T':
+					{
+					fptr = fopen ("10011TH.txt","r");//opens this file to read
+                    
+					if(fptr==NULL)//gives error if the file is not found or created
+                    {
+            	        printf("Account not found");
+            	    
+					exit(0);
+                    }
+                    
+					if (fptr)//when the file opens it does the following
+                    {
+            	    while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
+            	        fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
+            	        
+						fclose(fptr);//closes the file
+            	    
+					        getchar();
+            	        
+						printf("Press enter to continue.\n");
+            	            
+							getchar();
+            	                
+								break;
+                    }
+			        }
+			        case 'b':
 			        	{
 			        	    fptr = fopen ("10011.txt", "r");//opens this file that contains the account information
                                 
@@ -149,7 +217,32 @@
             	                    
 									         break;//prevents from the file looping over and over
 			        	}
-			        case (3):
+			        case 'B':
+			        	{
+			        	    fptr = fopen ("10011.txt", "r");//opens this file that contains the account information
+                                
+								if(fptr==NULL)//gives error if the file is not found or created
+                                {
+            	                    printf("Account not found");
+            	                
+								exit(0);
+                                }
+                            if (fptr)//if and when the file is opened it does the following
+                            {
+            	                while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
+            	                    
+									fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
+            	                    
+									fclose(fptr);//closes the file
+            	                    
+									     getchar();
+						            printf("Press enter to continue.\n");
+						            
+									     getchar();
+            	                    
+									         break;//prevents from the file looping over and over
+			        	}			        	
+			        case 'd':
 			        	{
 			        	    printf("How much would you like to deposit today?\n");
 			        	
@@ -171,7 +264,30 @@
 		    	        
 						             break;			        		
 			        	}
-			        case (4):
+			        case 'D':
+			        	{
+			        	    printf("How much would you like to deposit today?\n");
+			        	
+						    printf("This is your current balance %d\n", CBalance);
+			        	
+						    scanf("%d", &Deposit);
+		    	        
+						         CSum = CBalance + Deposit;
+		    	        
+						              printf("%d\n\n\n", CSum);
+		    	        
+						                   CBalance = CSum;
+            	        
+						         getchar();
+		    	        
+						    printf("Press enter to continue.\n");
+            	        
+						         getchar();
+		    	        
+						             break;			        		
+			        	}
+			        	
+			        case 'w':
 			        	{
 			        	    printf("How much would you like to withdraw today?\n");
 		    	        
@@ -194,11 +310,35 @@
 						             break;
 
 			        	}
-			        case (5):
+			        case 'W':
+			        	{
+			        	    printf("How much would you like to withdraw today?\n");
+		    	        
+						    printf("%d\n", CBalance);
+		    	        
+						    scanf("%d", &Withdraw);
+		    	        
+						         CSum = CBalance - Withdraw;
+		    	        
+						             printf("%d\n\n\n", CSum);
+		    	        
+						                 CBalance = CSum;
+		    	        
+						        getchar();
+		    	        
+						    printf("Press enter to continue.\n");
+            	        
+						        getchar();
+		    	        
+						             break;
+
+			        	}
+
+			        case 'p':
 			            {
 			        	    fptr = fopen ("Receipt.txt", "a");
 			        	    
-							fprintf (fptr, "LastName FirstName| Account %d|\n", Account);
+							fprintf (fptr, "LastName FirstName| Account %d|\n", Accounts);
 			        	    
 							fprintf (fptr, "Deposit: %d|\nWithdraw: %d|\nBalance: %d|\n", Deposit, Withdraw, CBalance);
 			        	     
@@ -209,7 +349,23 @@
 							    getchar();
 				                     break;
 			            }
-			        case (6):
+
+			        case 'P':
+			            {
+			        	    fptr = fopen ("Receipt.txt", "a");
+			        	    
+							fprintf (fptr, "LastName FirstName| Account %d|\n", Accounts);
+			        	    
+							fprintf (fptr, "Deposit: %d|\nWithdraw: %d|\nBalance: %d|\n", Deposit, Withdraw, CBalance);
+			        	     
+							    getchar();
+			        	    
+							printf("Press enter to continue\n");
+			        	    
+							    getchar();
+				                     break;
+			            }
+			        case 'e':
 			        	{
 			        		printintromenu();
 			        		
@@ -221,12 +377,207 @@
 							exit(1);
 			        		
 			        	}
+			        case 'E':
+			        	{
+			        		printintromenu();
+			        		
+			        		
+							printf("||                Thank you for banking with Bank of the Angels. Have a nice day                 ||\n");
+			        		
+			        		printoutromenu();
+			        		
+							exit(1);
+			        		
+			        	}
+
 	         }
 	        }
-	       }
 	      }
+	  }
     }
+    
+	Account parseAccount(char* line) //Function parseAccount takes char ptr as its arg and returns an Account struct 
+
+{
+
+	const char delimiter[2] = ",";
+
+	Account account; //variable account of the datatype Account 
+
+	char* token = strtok(line, delimiter);// declares token as the first token in the line
+
+	int i = 0;
+
+	while (token != NULL)
+
+	{
+
+		if (i == 0)
+
+		{
+
+			strcpy(account.firstName, token);
+
+		}
+
+		if (i == 1)
+
+		{
+
+			strcpy(account.lastName, token);
+
+		}
+
+		if (i == 2)
+
+		{
+
+			account.accountNum = atoi(token);
+
+		}
+
+		if (i == 3)
+
+		{
+
+			account.pin = atoi(token);
+
+		}
+
+		if (i == 4)
+
+		{
+
+			strcpy(account.accountFile, token);
+
+		}
+
+
+
+		token = strtok(NULL, delimiter);
+
+		i++;
+
+
+
+	};
+
+	return account; //returns account struct 
+
+}
+
+
+
+char getAccountAccess()
+
+{
+
+	//variables 
+
+	int accountNumInput = 0;
+
+	int pinInput = 0;
+
+	char line[500];
 	
+	char fileName;
+
+	Account accountArray[5];
+
+
+
+
+
+	printf("Please enter your account number");  //Ask user for login info
+
+	scanf("%d", &accountNumInput); //account num from user
+
+
+
+	FILE *fpAccounts = fopen("accounts.txt", "r");	//open file
+
+
+
+	if (fpAccounts == NULL)
+
+	{
+
+		printf("Error. No such file found");
+
+	}
+
+	else
+
+	{
+
+		while (fgets(line, 500, fpAccounts) != NULL)//get a line up to 500 chars from file. End when NULL
+
+		{
+
+			accountArray[0] = parseAccount(line);
+			
+			if (accountArray[0].accountNum != accountNumInput)
+			{
+				printf("Sorry, that account number was did not match out records. Please try again.");
+				exit(1);
+
+			}
+			else
+			{
+			if (accountArray[0].accountNum == accountNumInput)
+
+			{
+
+				printf("Please enter your PIN.");
+
+				scanf("%d", &pinInput);
+
+				if (accountArray[0].pin == pinInput)
+
+				{
+
+					//FILE *fpAccountFile = fopen(accountArray[0].accountFile, "a+");
+
+					//return file name
+
+				}
+
+				else
+
+				{
+
+					while (accountArray[0].pin != pinInput)
+
+					{
+
+						printf("Incorrect account PIN. Please try again.");
+
+						scanf("%d", &pinInput);
+
+						if (accountArray[0].pin == pinInput)
+
+						{
+							fileName* fnptr = accountArray[0].accountFile;
+							return fileName;
+
+						}
+
+					}
+
+				}
+
+			}
+
+
+
+		}
+
+
+
+		fclose(fpAccounts);
+	}
+	}
+}
 	void printheader(void)
     {
     	//Decided it would be cool to have ascii play as a menu. Check if you guys like it
