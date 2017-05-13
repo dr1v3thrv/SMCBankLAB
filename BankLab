@@ -72,7 +72,7 @@ void printAccount(Account account)
 
 
 
-char getAccountAccess(); //declared a function 
+bool getAccountAccess(); //declared a function 
 
     int GetInteger(const char *prompt, int *i)//Sifts through inputs by user and ensures that it is an integer, otherwise it will return a invalid entry
 	{
@@ -468,7 +468,7 @@ char getAccountAccess(); //declared a function
 
 
 
-char getAccountAccess()
+bool getAccountAccess()
 
 {
 
@@ -479,8 +479,6 @@ char getAccountAccess()
 	int pinInput = 0;
 
 	char line[500];
-	
-	char fileName;
 
 	Account accountArray[5];
 
@@ -557,8 +555,8 @@ char getAccountAccess()
 						if (accountArray[0].pin == pinInput)
 
 						{
-							fileName* fnptr = accountArray[0].accountFile;
-							return fileName;
+
+							return true;
 
 						}
 
