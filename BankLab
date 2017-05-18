@@ -1,465 +1,416 @@
 //Bank Lab Assignment//
-//Nassar Castellon CS50//
+//Nassar Castellon CS50// <--We should probably change that to say all of our names. 
+//Paula Mercado 
 //This is a program that acts like a bank atm program of sorts//
 //Requires that the user be able to deposit, withdrawl and check balance//
 
-     #include <stdio.h>
-     #include <stdlib.h>
-     #include <errno.h>
-     #include <stddef.h>
-     #include <string.h>
-     #include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <stddef.h>
+#include <string.h>
+#include <stdbool.h>
 
-     
-     //Define
-     #define CHUNK 1024 //Reads 1024 bytes of data at a time//
-     #define NAME_LEN 50
-	 #define ACCT_FILE_LEN 14 //ninedigit account num plus 4 characters for ".txt"
-	 
-     void printheader(void);
-     void printintromenu(void);
-     void printoutromenu(void);
-     void casesystem(void);
-        
-		//These are the variables I am using currently. We can talk about changing them if need be
 
-		int Withdraw = 0;
-    	int Deposit = 0;
-    	int i;
-    	int CBalance = 1000;//Checking Balance
-    	int SBalance = 0;//Savings Balance
-    	int CSum = 0;//Checking Sum
-    	int SSum = 0;//Savings Sum
-    	int Checking = 1000;//Checking balance - I was using this to test out another bit of code to see that the program was running correctly. I took it out due to crashing
-    	int Savings;// Savings balance - was not working on that yet
-    	int Accounts;//Where the account number is saved
-    	int Password;//Password is saved
-    	int Name;// I was going to use this to somehow open specific files depending on the input of the user. Need more research since I have failed so far.
-    	int gotostart=0;//This one of the things im testing currently. I need to be able to get out of a loop and start back in the main menu when the user is done. Figure this might be a way
-    	char buff[CHUNK];//Array where the program stores the information of the file. Chunk is mentioned above
-		char userChoice;
-		size_t nread;
-    	FILE *fptr;//This is our pointer to open file. Whenever you mention any file that need to be open just use fptr instead of file.
+//Define
+#define CHUNK 1024 //Reads 1024 bytes of data at a time//
+#define NAME_LEN 50
+#define ACCT_FILE_LEN 14 //ninedigit account num plus 4 characters for ".txt"
+
+void printheader(void);
+void printintromenu(void);
+void printoutromenu(void);
+void casesystem(const char *accountFileName);
+
+//These are the variables I am using currently. We can talk about changing them if need be
+
+int Withdraw = 0;
+int Deposit = 0;
+int i;
+int CBalance = 1000;//Checking Balance
+int SBalance = 0;//Savings Balance
+int CSum = 0;//Checking Sum
+int SSum = 0;//Savings Sum
+int Checking = 1000;//Checking balance - I was using this to test out another bit of code to see that the program was running correctly. I took it out due to crashing
+int Savings;// Savings balance - was not working on that yet
+int Accounts;//Where the account number is saved
+int Password;//Password is saved
+int Name;// I was going to use this to somehow open specific files depending on the input of the user. Need more research since I have failed so far.
+int gotostart = 0;//This one of the things im testing currently. I need to be able to get out of a loop and start back in the main menu when the user is done. Figure this might be a way
+char buff[CHUNK];//Array where the program stores the information of the file. Chunk is mentioned above
+char userChoice;
+bool continueAfterLogin;
+size_t nread;
+FILE *fptr;//This is our pointer to open file. Whenever you mention any file that need to be open just use fptr instead of file.
 
 
 typedef struct {
 
-	char firstName[NAME_LEN];
-
-	char lastName[NAME_LEN];
-
+	char firstName[NAME_LEN+1];
+	char lastName[NAME_LEN+1];
 	int accountNum;
-
 	int pin;
+	char accountFile[ACCT_FILE_LEN+1];
+} Account; 
 
-	char accountFile[ACCT_FILE_LEN];
+Account parseAccount(char* line); 
 
-} Account ;
-
-Account parseAccount(char* line);
-
-
-
-void printAccount(Account account) 
-
+void printAccount(Account account)
 {
-
 	printf("\n***Account**");
-
 	printf("\nFirst Name: %s", account.firstName);
+}
+
+bool getAccountAccess(char *fileNameBuffer, int bufferLength);
+
+int GetInteger(const char *prompt, int *i)//Sifts through inputs by user and ensures that it is an integer, otherwise it will return a invalid entry
+{
+	int Invalid = 0;//This is how the loop keeps asking for a new entry as 0 is false then turns on to get another number
+	int EndIndex;
+	char buffer[100];//size of buffer
+
+	do
+	{
+		if (Invalid)//loops for more re entries
+			fputs("Invalid input, try again.\n", stdout);
+		Invalid = 1;//makes statement true for another entry
+		fputs(prompt, stdout);
+		if (NULL == fgets(buffer, sizeof(buffer), stdin))
+
+			return 1;
+		errno = 0;
+	} while ((1 != sscanf(buffer, "%d %n", i, &EndIndex)) || buffer[EndIndex] || errno);
+	return 0;
+}
+
+int main(void)
+{
+	char accountFileName[ACCT_FILE_LEN + 1];//contains file name to use for access 
+	
+	printheader();//This is the ASCII art command
+
+	getchar();//pauses the program to prevent the user from getting lost in menu
+
+	printintromenu();//prints ascii top menu 
+				
+	bool continueAfterLogin = getAccountAccess(accountFileName, ACCT_FILE_LEN+1); 
+	
+	if (continueAfterLogin)
+	{
+		casesystem(accountFileName);//this is the case menu	
+	}
+
+	printoutromenu();//prints ascii bottom menu
+	return 0;
 
 }
 
 
+void casesystem(const char *accountFileName)
+{
+	getchar();
 
-bool getAccountAccess(); //declared a function 
-
-    int GetInteger(const char *prompt, int *i)//Sifts through inputs by user and ensures that it is an integer, otherwise it will return a invalid entry
+	while (1)
 	{
-        int Invalid = 0;//This is how the loop keeps asking for a new entry as 0 is false then turns on to get another number
-        int EndIndex;
-        char buffer[100];//size of buffer
-          
-	    do
-        {
-	        if (Invalid)//loops for more re entries
-                fputs("Invalid input, try again.\n", stdout);
-                Invalid = 1;//makes statement true for another entry
-                fputs(prompt, stdout);
-            if (NULL == fgets(buffer, sizeof(buffer), stdin))
-        
-		    return 1;
-            errno = 0;
-        } 
-        while ((1 != sscanf(buffer, "%d %n", i, &EndIndex)) || buffer[EndIndex] || errno);
-        return 0;
-    }
-	
-	int main (void)
-    {
-    	printheader();//This is the ASCII art command
-		
-		    getchar();//pauses the program to prevent the user from getting lost in menu
-		
-		printintromenu();//prints ascii top menu 
 
-	    /*    if (GetInteger("||                          Please enter your account number to begin.                           ||\n", &Account))//This is where the input is made for each of the arrays
-            {
-                   ; // End of file or I/O error (rare)
-            }
-        
-		    if (GetInteger("||                          Please enter your password.                                          ||\n", &Password))
-            {
-            	;
-            }*/
-        getAccountAccess();
-        
-		printoutromenu();//prints ascii bottom menu
-        
-		    casesystem();//this is the case menu	
-        
-						
-		return 0;
-	
-    }
-    
-	
-	void casesystem(void)
-    {
-    	getchar();
-    		        
-		   while(1)
-           {
-			
-			printf("\nPlease enter 'T' for Transaction History, 'B' for Balance, 'D' for Deposit, or 'W' for Withdraw\n 'P' to print a receipt, or 'E' to exit.\n");
+		printf("\nPlease enter 'T' for Transaction History, 'B' for Balance, 'D' for Deposit, or 'W' for Withdraw\n 'P' to print a receipt, or 'E' to exit.\n");
 
-			    scanf("%c", &userChoice);
-			
-			switch (userChoice)
+		scanf("%c", &userChoice);
+
+		switch (userChoice)
+		{
+		case 't':
+		{
+			fptr = fopen(accountFileName, "r");//opens this file to read
+
+			if (fptr == NULL)//gives error if the file is not found or created
 			{
-				case 't':
-					{
-					fptr = fopen ("10011TH.txt","r");//opens this file to read
-                    
-					if(fptr==NULL)//gives error if the file is not found or created
-                    {
-            	        printf("Account not found");
-            	    
-					exit(0);
-                    }
-                    
-					if (fptr)//when the file opens it does the following
-                    {
-            	    while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
-            	        fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
-            	        
-						fclose(fptr);//closes the file
-            	    
-					        getchar();
-            	        
-						printf("Press enter to continue.\n");
-            	            
-							getchar();
-            	                
-								break;
-                    }
-			        }
-			        
-					case 'T':
-					{
-					fptr = fopen ("10011TH.txt","r");//opens this file to read
-                    
-					if(fptr==NULL)//gives error if the file is not found or created
-                    {
-            	        printf("Account not found");
-            	    
-					exit(0);
-                    }
-                    
-					if (fptr)//when the file opens it does the following
-                    {
-            	    while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
-            	        fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
-            	        
-						fclose(fptr);//closes the file
-            	    
-					        getchar();
-            	        
-						printf("Press enter to continue.\n");
-            	            
-							getchar();
-            	                
-								break;
-                    }
-			        }
-			        case 'b':
-			        	{
-			        	    fptr = fopen ("10011.txt", "r");//opens this file that contains the account information
-                                
-								if(fptr==NULL)//gives error if the file is not found or created
-                                {
-            	                    printf("Account not found");
-            	                
-								exit(0);
-                                }
-                            if (fptr)//if and when the file is opened it does the following
-                            {
-            	                while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
-            	                    
-									fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
-            	                    
-									fclose(fptr);//closes the file
-            	                    
-									     getchar();
-						            printf("Press enter to continue.\n");
-						            
-									     getchar();
-            	                    
-									         break;//prevents from the file looping over and over
-			        	}
-			        case 'B':
-			        	{
-			        	    fptr = fopen ("10011.txt", "r");//opens this file that contains the account information
-                                
-								if(fptr==NULL)//gives error if the file is not found or created
-                                {
-            	                    printf("Account not found");
-            	                
-								exit(0);
-                                }
-                            if (fptr)//if and when the file is opened it does the following
-                            {
-            	                while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
-            	                    
-									fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
-            	                    
-									fclose(fptr);//closes the file
-            	                    
-									     getchar();
-						            printf("Press enter to continue.\n");
-						            
-									     getchar();
-            	                    
-									         break;//prevents from the file looping over and over
-			        	}			        	
-			        case 'd':
-			        	{
-			        	    printf("How much would you like to deposit today?\n");
-			        	
-						    printf("This is your current balance %d\n", CBalance);
-			        	
-						    scanf("%d", &Deposit);
-		    	        
-						         CSum = CBalance + Deposit;
-		    	        
-						              printf("%d\n\n\n", CSum);
-		    	        
-						                   CBalance = CSum;
-            	        
-						         getchar();
-		    	        
-						    printf("Press enter to continue.\n");
-            	        
-						         getchar();
-		    	        
-						             break;			        		
-			        	}
-			        case 'D':
-			        	{
-			        	    printf("How much would you like to deposit today?\n");
-			        	
-						    printf("This is your current balance %d\n", CBalance);
-			        	
-						    scanf("%d", &Deposit);
-		    	        
-						         CSum = CBalance + Deposit;
-		    	        
-						              printf("%d\n\n\n", CSum);
-		    	        
-						                   CBalance = CSum;
-            	        
-						         getchar();
-		    	        
-						    printf("Press enter to continue.\n");
-            	        
-						         getchar();
-		    	        
-						             break;			        		
-			        	}
-			        	
-			        case 'w':
-			        	{
-			        	    printf("How much would you like to withdraw today?\n");
-		    	        
-						    printf("%d\n", CBalance);
-		    	        
-						    scanf("%d", &Withdraw);
-		    	        
-						         CSum = CBalance - Withdraw;
-		    	        
-						             printf("%d\n\n\n", CSum);
-		    	        
-						                 CBalance = CSum;
-		    	        
-						        getchar();
-		    	        
-						    printf("Press enter to continue.\n");
-            	        
-						        getchar();
-		    	        
-						             break;
+				printf("Account not found");
 
-			        	}
-			        case 'W':
-			        	{
-			        	    printf("How much would you like to withdraw today?\n");
-		    	        
-						    printf("%d\n", CBalance);
-		    	        
-						    scanf("%d", &Withdraw);
-		    	        
-						         CSum = CBalance - Withdraw;
-		    	        
-						             printf("%d\n\n\n", CSum);
-		    	        
-						                 CBalance = CSum;
-		    	        
-						        getchar();
-		    	        
-						    printf("Press enter to continue.\n");
-            	        
-						        getchar();
-		    	        
-						             break;
+				exit(0);
+			}
 
-			        	}
+			if (fptr)//when the file opens it does the following
+			{
+				while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
+					fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
 
-			        case 'p':
-			            {
-			        	    fptr = fopen ("Receipt.txt", "a");
-			        	    
-							fprintf (fptr, "LastName FirstName| Account %d|\n", Accounts);
-			        	    
-							fprintf (fptr, "Deposit: %d|\nWithdraw: %d|\nBalance: %d|\n", Deposit, Withdraw, CBalance);
-			        	     
-							    getchar();
-			        	    
-							printf("Press enter to continue\n");
-			        	    
-							    getchar();
-				                     break;
-			            }
+				fclose(fptr);//closes the file
 
-			        case 'P':
-			            {
-			        	    fptr = fopen ("Receipt.txt", "a");
-			        	    
-							fprintf (fptr, "LastName FirstName| Account %d|\n", Accounts);
-			        	    
-							fprintf (fptr, "Deposit: %d|\nWithdraw: %d|\nBalance: %d|\n", Deposit, Withdraw, CBalance);
-			        	     
-							    getchar();
-			        	    
-							printf("Press enter to continue\n");
-			        	    
-							    getchar();
-				                     break;
-			            }
-			        case 'e':
-			        	{
-			        		printintromenu();
-			        		
-			        		
-							printf("||                Thank you for banking with Bank of the Angels. Have a nice day                 ||\n");
-			        		
-			        		printoutromenu();
-			        		
-							exit(1);
-			        		
-			        	}
-			        case 'E':
-			        	{
-			        		printintromenu();
-			        		
-			        		
-							printf("||                Thank you for banking with Bank of the Angels. Have a nice day                 ||\n");
-			        		
-			        		printoutromenu();
-			        		
-							exit(1);
-			        		
-			        	}
+				getchar();
 
-	         }
-	        }
-	      }
-	  }
-    }
-    
-	Account parseAccount(char* line) //Function parseAccount takes char ptr as its arg and returns an Account struct 
+				printf("Press enter to continue.\n");
+
+				getchar();
+
+				break;
+			}
+		}
+
+		case 'T':
+		{
+			fptr = fopen(accountFileName, "r");//opens this file to read
+
+			if (fptr == NULL)//gives error if the file is not found or created
+			{
+				printf("Account not found");
+
+				exit(0);
+			}
+
+			if (fptr)//when the file opens it does the following
+			{
+				while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
+					fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
+
+				fclose(fptr);//closes the file
+
+				getchar();
+
+				printf("Press enter to continue.\n");
+
+				getchar();
+
+				break;
+			}
+		}
+		case 'b':
+		{
+			fptr = fopen(accountFileName, "r");//opens this file that contains the account information
+
+			if (fptr == NULL)//gives error if the file is not found or created
+			{
+				printf("Account not found");
+
+				exit(0);
+			}
+			if (fptr)//if and when the file is opened it does the following
+			{
+				while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
+
+					fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
+
+				fclose(fptr);//closes the file
+
+				getchar();
+				printf("Press enter to continue.\n");
+
+				getchar();
+
+				break;//prevents from the file looping over and over
+			}
+		case 'B':
+		{
+			fptr = fopen(accountFileName, "r");//opens this file that contains the account information
+
+			if (fptr == NULL)//gives error if the file is not found or created
+			{
+				printf("Account not found");
+
+				exit(0);
+			}
+			if (fptr)//if and when the file is opened it does the following
+			{
+				while ((nread = fread(buff, 1, sizeof buff, fptr)) > 0)//Reads the whole file in a single blow with the size of what is stated in CHUNK
+
+					fwrite(buff, 1, nread, stdout);//shows the information on the screen in the same format as the file
+
+				fclose(fptr);//closes the file
+
+				getchar();
+				printf("Press enter to continue.\n");
+
+				getchar();
+
+				break;//prevents from the file looping over and over
+			}
+		case 'd':
+		{
+			printf("How much would you like to deposit today?\n");
+
+			printf("This is your current balance %d\n", CBalance);
+
+			scanf("%d", &Deposit);
+
+			CSum = CBalance + Deposit;
+
+			printf("%d\n\n\n", CSum);
+
+			CBalance = CSum;
+
+			getchar();
+
+			printf("Press enter to continue.\n");
+
+			getchar();
+
+			break;
+		}
+		case 'D':
+		{
+			printf("How much would you like to deposit today?\n");
+
+			printf("This is your current balance %d\n", CBalance);
+
+			scanf("%d", &Deposit);
+
+			CSum = CBalance + Deposit;
+
+			printf("%d\n\n\n", CSum);
+
+			CBalance = CSum;
+
+			getchar();
+
+			printf("Press enter to continue.\n");
+
+			getchar();
+
+			break;
+		}
+
+		case 'w':
+		{
+			printf("How much would you like to withdraw today?\n");
+
+			printf("%d\n", CBalance);
+
+			scanf("%d", &Withdraw);
+
+			CSum = CBalance - Withdraw;
+
+			printf("%d\n\n\n", CSum);
+
+			CBalance = CSum;
+
+			getchar();
+
+			printf("Press enter to continue.\n");
+
+			getchar();
+
+			break;
+
+		}
+		case 'W':
+		{
+			printf("How much would you like to withdraw today?\n");
+
+			printf("%d\n", CBalance);
+
+			scanf("%d", &Withdraw);
+
+			CSum = CBalance - Withdraw;
+
+			printf("%d\n\n\n", CSum);
+
+			CBalance = CSum;
+
+			getchar();
+
+			printf("Press enter to continue.\n");
+
+			getchar();
+
+			break;
+
+		}
+
+		case 'p':
+		{
+			fptr = fopen("Receipt.txt", "a");
+
+			fprintf(fptr, "LastName FirstName| Account %d|\n", Accounts);
+
+			fprintf(fptr, "Deposit: %d|\nWithdraw: %d|\nBalance: %d|\n", Deposit, Withdraw, CBalance);
+
+			getchar();
+
+			printf("Press enter to continue\n");
+
+			getchar();
+			break;
+		}
+
+		case 'P':
+		{
+			fptr = fopen("Receipt.txt", "a");
+
+			fprintf(fptr, "LastName FirstName| Account %d|\n", Accounts);
+
+			fprintf(fptr, "Deposit: %d|\nWithdraw: %d|\nBalance: %d|\n", Deposit, Withdraw, CBalance);
+
+			getchar();
+
+			printf("Press enter to continue\n");
+
+			getchar();
+			break;
+		}
+		case 'e':
+		{
+			printintromenu();
+
+
+			printf("||                Thank you for banking with Bank of the Angels. Have a nice day                 ||\n");
+
+			printoutromenu();
+
+			exit(1);
+
+		}
+		case 'E':
+		{
+			printintromenu();
+
+
+			printf("||                Thank you for banking with Bank of the Angels. Have a nice day                 ||\n");
+
+			printoutromenu();
+
+			exit(1);
+
+		}
+
+		}
+		}
+		}
+	}
+}
+
+Account parseAccount(char* line) //Function parseAccount takes char ptr as its arg and returns an Account struct 
 
 {
-
 	const char delimiter[2] = ",";
-
 	Account account; //variable account of the datatype Account 
-
 	char* token = strtok(line, delimiter);// declares token as the first token in the line
-
 	int i = 0;
-
 	while (token != NULL)
 
 	{
-
 		if (i == 0)
-
 		{
-
-			strcpy(account.firstName, token);
-
+			strncpy(account.firstName, token, NAME_LEN);
 		}
-
 		if (i == 1)
-
 		{
-
-			strcpy(account.lastName, token);
-
+			strncpy(account.lastName, token, NAME_LEN);
 		}
-
 		if (i == 2)
-
 		{
-
 			account.accountNum = atoi(token);
-
 		}
-
 		if (i == 3)
-
 		{
-
 			account.pin = atoi(token);
-
 		}
-
 		if (i == 4)
-
 		{
-
-			strcpy(account.accountFile, token);
-
+			strncpy(account.accountFile, token, ACCT_FILE_LEN);
 		}
-
-
 
 		token = strtok(NULL, delimiter);
-
 		i++;
-
-
-
 	};
 
 	return account; //returns account struct 
@@ -468,181 +419,134 @@ bool getAccountAccess(); //declared a function
 
 
 
-bool getAccountAccess()
-
+bool getAccountAccess(char *fileNameBuffer, int bufferLength)
 {
-
-	//variables 
-
 	int accountNumInput = 0;
-
 	int pinInput = 0;
-
 	char line[500];
+	Account account;
+	bool pinMatches = false;
 
-	Account accountArray[5];
-
-
-
-
-
-	printf("Please enter your account number");  //Ask user for login info
-
+	printf("Please enter your account number ");  //Ask user for login info
 	scanf("%d", &accountNumInput); //account num from user
-
-
 
 	FILE *fpAccounts = fopen("accounts.txt", "r");	//open file
 
-
-
 	if (fpAccounts == NULL)
-
 	{
-
-		printf("Error. No such file found");
-
+		printf("Error. Could not get account access");
 	}
-
 	else
-
 	{
-
 		while (fgets(line, 500, fpAccounts) != NULL)//get a line up to 500 chars from file. End when NULL
-
 		{
-
-			accountArray[0] = parseAccount(line);
-			
-			if (accountArray[0].accountNum != accountNumInput)
+			account = parseAccount(line);
+			if (account.accountNum != accountNumInput)
 			{
 				printf("Sorry, that account number was did not match out records. Please try again.");
-				exit(1);
-
+				pinMatches = false;
+				break;
 			}
 			else
 			{
-			if (accountArray[0].accountNum == accountNumInput)
-
-			{
-
-				printf("Please enter your PIN.");
-
-				scanf("%d", &pinInput);
-
-				if (accountArray[0].pin == pinInput)
-
+				if (account.accountNum == accountNumInput)
 				{
-
-					//FILE *fpAccountFile = fopen(accountArray[0].accountFile, "a+");
-
-					//return file name
-
-				}
-
-				else
-
-				{
-
-					while (accountArray[0].pin != pinInput)
-
+					printf("Please enter your PIN. ");
+					scanf("%d", &pinInput);
+					if (account.pin == pinInput)
 					{
-
-						printf("Incorrect account PIN. Please try again.");
-
-						scanf("%d", &pinInput);
-
-						if (accountArray[0].pin == pinInput)
-
-						{
-
-							return true;
-
-						}
-
+						pinMatches = true;
+						strncpy(fileNameBuffer, account.accountFile, bufferLength);
+						break;
 					}
-
+					else
+					{
+						while (account.pin != pinInput)
+						{
+							printf("Incorrect account PIN. Please try again. ");
+							scanf("%d", &pinInput);
+							if (account.pin == pinInput)
+							{
+								pinMatches = true;
+								strncpy(fileNameBuffer, account.accountFile, bufferLength);
+								break;
+							}
+						}
+					}
 				}
-
 			}
-
-
-
+			fclose(fpAccounts);
 		}
-
-
-
-		fclose(fpAccounts);
 	}
-	}
+	return pinMatches;
 }
-	void printheader(void)
-    {
-    	//Decided it would be cool to have ascii play as a menu. Check if you guys like it
-    	//Also, I am testing this stuff out with the files named 10011.txt <- contains the checking and savings information
-    	//The file 10011TH.txt <- contains the transaction history.
-    	//still working on the rest. I have to figure out if the information on the arrays are usable to store the information as actual balance information.-Cast
-		printf("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
-    	printf("||                                                                                               ||\n");
-    	printf("||                                                                                               ||\n");
-    	printf("||       88888888b                         888                             .d888b.               ||\n");
-    	printf("||       888   'Y88b                       888                            .d8''''8b.             ||\n");
-    	printf("||       888     888                       888      .d8P'                 888    '88             ||\n");
-    	printf("||       888     888                       888    .d8P'                   888    '88             ||\n");
-    	printf("||       888  .d88P    99999b   1888888b.  888  .d8P'          .d888b.    888                    ||\n");
-    	printf("||       888  'Y88b       '99b  888   888  888888P'           d88'''88b  8888888b                ||\n");
-    	printf("||       888     888  .d799999  888   888  88888b.            888   888  '888''''                ||\n");
-    	printf("||       888     888  99   '99  888   888  888 'Y8b.          888   888   888                    ||\n");
-    	printf("||       888   .d88P  99    99  888   888  888    'Y8b.       Y88...88P   888                    ||\n");
-    	printf("||       888888888P'  '9999999  888   '81  88'      'Y8b.      'Y888P'    888                    ||\n");
-    	printf("||                                                                                               ||\n");
-    	printf("||                                       888                                                     ||\n");
-    	printf("||                               888     888                                                     ||\n");
-        printf("||                            888888888  888          .d88b.                                     ||\n");
-        printf("||                               888     888888b.    d8P  Y8b                                    ||\n");
-        printf("||                               888     888  '888   88888888                                    ||\n");
-        printf("||                               888     888   888   Y8b.                                        ||\n");
-        printf("||                               888     888   888    'Y88888                                    ||\n");
-        printf("||                                                                                               ||\n");
-        printf("||                     .d8888                                   888                              ||\n");
-        printf("||                    88' 888                                   888                              ||\n");
-        printf("||                   88    88                                   888                              ||\n");
-        printf("||                  88     88                                   888                              ||\n");
-        printf("||                 88      88                                   888                              ||\n");
-        printf("||                88       88                                   888                              ||\n");
-        printf("||        .d7777777777777777777777777777777777777777777777777777888777777777777777777777,        ||\n");
-        printf("||      .d77777777777777777777771888888n.77.d8888b.77.d88888b.7788877.d8888b777777777777'        ||\n");
-        printf("||    .d7      88          88   888   888  888   88  88    88P  888  88K                         ||\n");
-        printf("||  .d7       88           88   888   888  888   88  88888888P  888  'Y8888b,                    ||\n");
-        printf("||  77b.     88            88   888   888  888   88  88         888       X88                    ||\n");
-        printf("||   77b.   88             88   888   888  88888888  888888888  888  888888P'                    ||\n");
-        printf("||    77b. 88                                 .d8888                                             ||\n");
-        printf("||     77788                                .d88 88                                              ||\n");
-        printf("||      88                                 .d8   88                                              ||\n");
-        printf("||                                         88    88                                              ||\n");
-        printf("||                                         8b.   88                                              ||\n");
-        printf("||                                          8888888                                              ||\n");
-    	printf("||                                                                                               ||\n");
-    	printf("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
-    	printf("                                    Press Enter to Continue.\n");
-    	printf("\n\n\n\n\n");
-    	printf("                                   Welcome to Bank of the Angels\n");
-    }
-    void printintromenu(void)
-    {
-    	        printf("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
-				printf("||                                                                                               ||\n");
-				printf("||                                                                                               ||\n");
-				printf("||                                                                                               ||\n");
-				printf("||                                                                                               ||\n");
-    }
-    void printoutromenu(void)
-    {
-    	        printf("||                                                                                               ||\n");
-                printf("||                                                                                               ||\n");
-                printf("||                                                                                               ||\n");
-				printf("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
+void printheader(void)
+{
+	//Decided it would be cool to have ascii play as a menu. Check if you guys like it
+	//Also, I am testing this stuff out with the files named 10011.txt <- contains the checking and savings information
+	//The file 10011TH.txt <- contains the transaction history.
+	//still working on the rest. I have to figure out if the information on the arrays are usable to store the information as actual balance information.-Cast
+	printf("||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
+	printf("||                                                                                               ||\n");
+	printf("||                                                                                               ||\n");
+	printf("||       88888888b                         888                             .d888b.               ||\n");
+	printf("||       888   'Y88b                       888                            .d8''''8b.             ||\n");
+	printf("||       888     888                       888      .d8P'                 888    '88             ||\n");
+	printf("||       888     888                       888    .d8P'                   888    '88             ||\n");
+	printf("||       888  .d88P    99999b   1888888b.  888  .d8P'          .d888b.    888                    ||\n");
+	printf("||       888  'Y88b       '99b  888   888  888888P'           d88'''88b  8888888b                ||\n");
+	printf("||       888     888  .d799999  888   888  88888b.            888   888  '888''''                ||\n");
+	printf("||       888     888  99   '99  888   888  888 'Y8b.          888   888   888                    ||\n");
+	printf("||       888   .d88P  99    99  888   888  888    'Y8b.       Y88...88P   888                    ||\n");
+	printf("||       888888888P'  '9999999  888   '81  88'      'Y8b.      'Y888P'    888                    ||\n");
+	printf("||                                                                                               ||\n");
+	printf("||                                       888                                                     ||\n");
+	printf("||                               888     888                                                     ||\n");
+	printf("||                            888888888  888          .d88b.                                     ||\n");
+	printf("||                               888     888888b.    d8P  Y8b                                    ||\n");
+	printf("||                               888     888  '888   88888888                                    ||\n");
+	printf("||                               888     888   888   Y8b.                                        ||\n");
+	printf("||                               888     888   888    'Y88888                                    ||\n");
+	printf("||                                                                                               ||\n");
+	printf("||                     .d8888                                   888                              ||\n");
+	printf("||                    88' 888                                   888                              ||\n");
+	printf("||                   88    88                                   888                              ||\n");
+	printf("||                  88     88                                   888                              ||\n");
+	printf("||                 88      88                                   888                              ||\n");
+	printf("||                88       88                                   888                              ||\n");
+	printf("||        .d7777777777777777777777777777777777777777777777777777888777777777777777777777,        ||\n");
+	printf("||      .d77777777777777777777771888888n.77.d8888b.77.d88888b.7788877.d8888b777777777777'        ||\n");
+	printf("||    .d7      88          88   888   888  888   88  88    88P  888  88K                         ||\n");
+	printf("||  .d7       88           88   888   888  888   88  88888888P  888  'Y8888b,                    ||\n");
+	printf("||  77b.     88            88   888   888  888   88  88         888       X88                    ||\n");
+	printf("||   77b.   88             88   888   888  88888888  888888888  888  888888P'                    ||\n");
+	printf("||    77b. 88                                 .d8888                                             ||\n");
+	printf("||     77788                                .d88 88                                              ||\n");
+	printf("||      88                                 .d8   88                                              ||\n");
+	printf("||                                         88    88                                              ||\n");
+	printf("||                                         8b.   88                                              ||\n");
+	printf("||                                          8888888                                              ||\n");
+	printf("||                                                                                               ||\n");
+	printf("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
+	printf("                                    Press Enter to Continue.\n");
+	printf("\n\n\n\n\n");
+	printf("                                   Welcome to Bank of the Angels\n");
+}
+void printintromenu(void)
+{
+	printf("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
+	printf("||                                                                                               ||\n");
+	printf("||                                                                                               ||\n");
+	printf("||                                                                                               ||\n");
+	printf("||                                                                                               ||\n");
+}
+void printoutromenu(void)
+{
+	printf("||                                                                                               ||\n");
+	printf("||                                                                                               ||\n");
+	printf("||                                                                                               ||\n");
+	printf("|||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||\n");
 
-		        printf("         We appreciate conducting business with you. How are we able to help you today?\n");			
+	printf("         We appreciate conducting business with you. How are we able to help you today?\n");
 
-    }
+}
