@@ -29,7 +29,6 @@ Requires that the user be able to deposit, withdrawl and check balance*/
 		int withdraw = 0;
     	int deposit = 0;
     	int i[30];
-    	char t[30];
     	int balance = 0.0;//Checking Balance
     	int cSum = 0;//Checking Sum
     	int account;//Where the account number is saved
@@ -149,43 +148,57 @@ typedef struct {
 			{
 				case 't':
 					{
-						printf ("  Transaction Type    |         Amount        |    Balance    |\n");
-                        balance = 0;
-							for (c = 0; c <= 5; c++)
+							printf ("  Transaction Type    |         Amount        |    Balance    |\n");
+								balance = 0;
+							for (c = 0; c < 5; c++)
 							{
-							    printf ("%d - %18s|%23d|%15d|\n", c + 1, t[c] , i[c], balance = i[c] + balance);//%d - %19S|%14d|%15d|\n
+								printf ("%d - ", c + 1);
+								if (i[c] < 0)
+								{
+								    printf ("      Withdraw    ");
+								}
+								else
+								    printf ("      Deposit     ");
+								
+							printf ("|%23d|%15d|\n", i[c], balance = i[c] + balance);//%d - %19S|%14d|%15d|\n
 						    }
 							
-							    printf ("Available funds : %d\n", balance);
+							printf ("Available funds : %d\n", balance);
 			        	     
-					        getchar();
-            	        
-					    	printf("Press enter to continue.\n");
-            	            
-							getchar();
-            	                
-								break;
+							    getchar();
+			        	    
+							printf("Press enter to continue\n");
+			        	    
+							    getchar();
+				                     break;
             	    
                     }
 			        
 					case 'T':
 					{
 						printf ("  Transaction Type    |         Amount        |    Balance    |\n");
-                        balance = 0;
+								balance = 0;
 							for (c = 0; c < 5; c++)
 							{
-							    printf ("%d - %18d|%23d|%15d|\n", c + 1, transactionType, i[c], balance = i[c] + balance);//%d - %19S|%14d|%15d|\n
+								printf ("%d - ", c + 1);
+								if (i[c] < 0)
+								{
+								    printf ("      Withdraw    ");
+								}
+								else
+								    printf ("      Deposit     ");
+								
+							printf ("|%23d|%15d|\n", i[c], balance = i[c] + balance);//%d - %19S|%14d|%15d|\n
 						    }
 							
-							    printf ("Available funds : %d\n", balance);
+							printf ("Available funds : %d\n", balance);
 			        	     
-					        getchar();
-            	        
-					    	printf("Press enter to continue.\n");
-            	            
-							getchar();
-            	                
-								break;
+							    getchar();
+			        	    
+							printf("Press enter to continue\n");
+			        	    
+							    getchar();
+				                     break;
                     }
 			        case 'b':
 			        	{
@@ -333,7 +346,15 @@ typedef struct {
 								balance = 0;
 							for (c = 0; c < 5; c++)
 							{
-							fprintf (fptr, "%d - %18s|%23d|%15d|\n", c + 1, t[c], i[c], balance = i[c] + balance);//%d - %19S|%14d|%15d|\n
+								fprintf (fptr, "%d - ", c + 1);
+								if (i[c] < 0)
+								{
+								    fprintf (fptr, "      Withdraw    ");
+								}
+								else
+								    fprintf (fptr, "      Deposit     ");
+								
+							fprintf (fptr, "|%23d|%15d|\n", i[c], balance = i[c] + balance);//%d - %19S|%14d|%15d|\n
 						    }
 							
 							fprintf (fptr, "Available funds : %d\n", balance);
@@ -366,7 +387,15 @@ typedef struct {
 								balance = 0;
 							for (c = 0; c < 5; c++)
 							{
-							fprintf (fptr, "%d - %18d|%23d|%15d|\n", c + 1, transactionType, i[c], balance = i[c] + balance);//%d - %19S|%14d|%15d|\n
+								fprintf (fptr, "%d - ", c + 1);
+								if (i[c] < 0)
+								{
+								    fprintf (fptr, "      Withdraw    ");
+								}
+								else
+								    fprintf (fptr, "      Deposit     ");
+								
+							fprintf (fptr, "|%23d|%15d|\n", i[c], balance = i[c] + balance);//%d - %19S|%14d|%15d|\n
 						    }
 							
 							fprintf (fptr, "Available funds : %d\n", balance);
@@ -377,6 +406,7 @@ typedef struct {
 			        	    
 							    getchar();
 				                     break;
+				                     
 			            }
 			        case 'e':
 			        	{
