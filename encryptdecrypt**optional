@@ -1,0 +1,65 @@
+#include<stdio.h>
+char* encrypt(char ch [500], int key){
+  int n= strlen(ch);
+  char res[501];
+  for (int i = 0; i < n; i++)
+  {
+    int t;
+    if (ch[i] - 65 <= 26)
+    t = ((ch[i]-65) + key) % 26 + 65;
+   else
+           t = ((ch[i]-97) + key) % 26 + 97;
+   res[i] = (char)t;
+   }
+  res[n] = '\0';
+  return res; 
+ }
+ 
+ char* decrypt(char ch[500],int key)
+ {
+    int n = strlen(ch);
+    char res[501];
+    for (int i = 0; i < n; i++)
+    {
+        int t = ch[i] - key;
+        if (ch[i] - 65 <= 26)
+        {
+            if (t < 65)
+            t += 26;
+            res[i] = (char)(t);
+         }
+    else
+        {
+          if (t < 97)
+          t += 26;
+          res[i] = (char)t;
+        }
+    }
+      res[n] = '\0';
+      return res;
+    }
+int main()
+{
+   int n;
+   while(1)
+   
+   {
+        printf("%s\n", "1. Encrypt ");
+        printf("%s\n", "2. Decrypt");
+        printf("%s\n", "3. Quit");
+         scanf("%d",&n);
+         if (n == 3)
+            break;
+         int key;
+         printf("%s", "What is your key value(1-10)?   ");
+          scanf("%d",&key);
+           char ch[500];
+           printf("%s ", "Enter your string: ");
+            scanf("%s",&ch);
+            if (n == 1)
+            printf("Your encrypted string : %s\n\n",encrypt(ch,key));
+            else if (n == 2)
+            printf("Your decrypted string : %s\n\n",decrypt(ch,key));
+    }
+            return 0;
+}
